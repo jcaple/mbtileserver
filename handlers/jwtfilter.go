@@ -7,6 +7,8 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+// Thanks to: https://vikaspogu.dev/posts/sso-jwt-golang/
+
 // HandlerWrapper is a type definition for a function that takes an http.Handler
 // and returns an http.Handler
 type HandlerWrapperJWT func(http.Handler) http.Handler
