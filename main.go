@@ -85,6 +85,8 @@ var (
 	disableTileJSON     bool
 	disableServiceList  bool
 	tilesOnly           bool
+	jwtKey				string
+	jwtCookieName       string
 )
 
 func init() {
@@ -206,6 +208,14 @@ func init() {
 			log.Fatalln("VERBOSE must be a bool(true/false)")
 		}
 		verbose = p
+	}
+
+	if env := os.Getenv("JWT_RSA_KEY"); env != "" {
+		jwtKey = env
+	}
+
+	if env := os.Getenv("JWT_COOKIE_NAME"); env != "" {
+		jwtCookieName = env
 	}
 }
 
@@ -360,6 +370,14 @@ func serve() {
 	if secretKey != "" {
 		hmacAuth := handlers.HMACAuthMiddleware(secretKey, svcSet)
 		e.Use(echo.WrapMiddleware(hmacAuth))
+	}
+
+	// Filter incoming HTTP requests for a JWT token in the header with the 
+	// specified Cookie name.  Cryptographically validate JWT claims before
+	// serving map tiles.
+	if jwtKey != "" {
+		jwtFilter := handlers.JWTFilterMiddleware(jwtKey, jwtCookieName)
+		e.Use(echo.WrapMiddleware(jwtFilter))
 	}
 
 	// Get HTTP.Handler for the service set, and wrap for use in echo
